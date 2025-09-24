@@ -49,8 +49,7 @@ async def upload_excel_file(file: UploadFile = File(...)):
 
     get_month = name_without_ext.split("_")[-1]
 
-    # Save file with unique name to avoid conflicts
-    # here has to be saving in minIO
+    # TODO here has to be saving in minIO
     
 
     return {
