@@ -4,7 +4,11 @@ import shutil
 import os
 from pathlib import Path
 from typing import Optional
+import os
+from botocore.exceptions import EndpointConnectionError, ClientError
 
+from tools.s3_service import s3_bucket_service_factory
+from models.commonModels import CommonException
 app = FastAPI()
 
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB in bytes
@@ -14,6 +18,7 @@ ALLOWED_EXTENSIONS = {'.xlsx', '.xls', '.csv'}
 
 @app.post("/upload-excel/")
 async def upload_excel_file(file: UploadFile = File(...)):
+    exception_model = CommonException
     # Validate file extension
     file_ext = Path(file.filename).suffix.lower()
     if file_ext not in ALLOWED_EXTENSIONS:
@@ -36,6 +41,7 @@ async def upload_excel_file(file: UploadFile = File(...)):
                 status_code=400, 
                 detail=f"File too large. Max size: {MAX_FILE_SIZE // (1024*1024)}MB"
             )
+        
     except Exception as e:
         raise HTTPException(status_code=400, detail="Unable to validate file size")
     
@@ -47,17 +53,36 @@ async def upload_excel_file(file: UploadFile = File(...)):
 
     file_ext =  spaced_filename.split(".")[1]
 
-    get_month = name_without_ext.split("_")[-1]
+    name_with_month = name_without_ext.split("_")[-1]
 
-    # TODO here has to be saving in minIO
+    file_name = name_without_ext.split("_")[-2]
+
+    file_content = await file.read()
+
+    #s3 service factory and upload data
     
-
-    return {
+    s3_constructor = s3_bucket_service_factory()
+    
+    try:
+        s3_constructor.upload_file_object(prefix=file_name, source_file_name=spaced_filename, content=file_content)
+    except EndpointConnectionError as e:
+        print(f"Could not connect to S3 endpoint: {e}")
+        return False
+    except ClientError as e:
+        print(f"S3 Client error: {e}")
+        return False    
+    
+    #TODO create response model
+    response =  {
         "message": "File uploaded successfully",
         "filename": spaced_filename,
-        "month": get_month,
+        "month": name_with_month,
         "file_extension": file_ext, 
+        "name_without_ext": name_without_ext,
+        "file_name": file_name,
         "size_mb": round(file_size / (1024 * 1024), 2),
     }
+
+    return JSONResponse(content=response, status_code=200)
     
    
