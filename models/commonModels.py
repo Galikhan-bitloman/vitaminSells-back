@@ -5,3 +5,5 @@ class CommonException(BaseModel):
     ExceptionText: Union[str, None]
     ExceptionType: Union[str, None]
     Success: bool
+
+
