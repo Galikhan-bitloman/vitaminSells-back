@@ -66,3 +66,4 @@ def s3_bucket_service_factory() -> S3BucketService:
         os.getenv("access_key"),
         os.getenv("secret_key"),
     )
+
