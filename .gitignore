@@ -6,7 +6,7 @@ __pycache__/
 .models/__pycache__
 .services/__pycache__
 .tools/__pycache__
-
+.DS_Store
 
 # Environments
 .env

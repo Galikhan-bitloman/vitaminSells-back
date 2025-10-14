@@ -1,14 +1,11 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
-import shutil
-import os
 from pathlib import Path
-from typing import List, Optional
-import os
+from typing import List
 from botocore.exceptions import EndpointConnectionError, ClientError
 
 from tools.s3_service import s3_bucket_service_factory
-from models.commonModels import CommonException
+
 app = FastAPI()
 
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB in bytes
@@ -59,11 +56,11 @@ async def upload_excel_file(files: List[UploadFile] = File(...)):
         file_ext =  spaced_filename.split(".")[1]
 
         name_with_month = name_without_ext.split("_")[-1]
-
+    
         file_name = name_without_ext.split("_")[-2]
         #TODO change to apropriate checker func
-        if file_name == "питание":
-            file_name = "спорт_питание"
+        if file_name == "питание" or file_name == "бады":
+            file_name = "nutritions_and_vitamins"
 
         file_content = await file.read()
 
